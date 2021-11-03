@@ -36,19 +36,20 @@ import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class EnvironmentSettings {
 
+    private static final String CATEGORY_CUSTOMSPAWNER_SETTINGS = "customspawner-settings";
+    private static final String CATEGORY_BIOMEGROUP_DEFAULTS = "biomegroup-defaults";
+    private static final String CATEGORY_MOD_MAPPINGS = "mod-mappings";
+    private static final String CREATURES_FILE_PATH = File.separator + "Creatures" + File.separator;
+    private static final String BIOMES_FILE_PATH = File.separator + "Biomes" + File.separator;
+    private final File ROOT_PATH;
+    private final String name;
+    private final Class<? extends WorldProvider> worldProviderClass;
+    private final Map<String, EnumCreatureType> entityTypes = new HashMap<String, EnumCreatureType>();
+    private final Set<BiomeDictionary.Type> biomeTypes = new HashSet<>();
     public boolean worldGenCreatureSpawning = true;
     public boolean killallUseLightLevel;
     public boolean killallVillagers;
@@ -57,12 +58,7 @@ public class EnvironmentSettings {
     public int maxDespawnLightLevel = 7;
     public boolean forceDespawns;
     public boolean debug;
-    private File ROOT_PATH;
-    private String name;
-    private Class<? extends WorldProvider> worldProviderClass;
-
     public Map<String, EntityData> entityMap = new TreeMap<String, EntityData>(String.CASE_INSENSITIVE_ORDER);
-    private Map<String, EnumCreatureType> entityTypes = new HashMap<String, EnumCreatureType>();
     public Map<String, BiomeData> biomeMap = new TreeMap<String, BiomeData>();
     public Map<String, BiomeGroupData> biomeGroupMap = new TreeMap<String, BiomeGroupData>(String.CASE_INSENSITIVE_ORDER);
     public Map<String, EntityModData> entityModMap = new TreeMap<String, EntityModData>(String.CASE_INSENSITIVE_ORDER);
@@ -78,14 +74,6 @@ public class EnvironmentSettings {
     public EntitySpawnType LIVINGTYPE_UNDERGROUND = new EntitySpawnType(this, EntitySpawnType.UNDERGROUND, 400, 15, 0, 63, 0.0F, false);
     public Map<String, String> worldEnvironmentMap = new HashMap<String, String>();
     public StructureRegistry structureData = new StructureRegistry();
-    private Set<BiomeDictionary.Type> biomeTypes = new HashSet<>();
-
-    private static final String CATEGORY_CUSTOMSPAWNER_SETTINGS = "customspawner-settings";
-    private static final String CATEGORY_BIOMEGROUP_DEFAULTS = "biomegroup-defaults";
-    private static final String CATEGORY_MOD_MAPPINGS = "mod-mappings";
-    private static final String CREATURES_FILE_PATH = File.separator + "Creatures" + File.separator;
-    private static final String BIOMES_FILE_PATH = File.separator + "Biomes" + File.separator;
-
     public CMSConfiguration CMSEnvironmentConfig;
     public CMSConfiguration CMSStructureConfig;
     public CMSConfiguration CMSEntityBiomeGroupsConfig;
@@ -202,7 +190,7 @@ public class EnvironmentSettings {
     public void initializeEntities() {
         // There seems to be a race condition with EntityDataManager registration when entity list is not sorted
         // To avoid these issues, the entity list will now be sorted to guarantee the order is the same every time
-        TreeMap< String, Class <? extends Entity >> sortedMap = new TreeMap< String, Class <? extends Entity >>(String.CASE_INSENSITIVE_ORDER);
+        TreeMap<String, Class<? extends Entity>> sortedMap = new TreeMap<String, Class<? extends Entity>>(String.CASE_INSENSITIVE_ORDER);
         for (EntityEntry entry : net.minecraftforge.registries.GameData.getEntityRegistry().getValues()) {
             sortedMap.put(entry.getName(), entry.getEntityClass());
         }
@@ -225,7 +213,7 @@ public class EnvironmentSettings {
             if (this.debug) {
                 this.envLog.logger.info("Attempting to register Entity from class " + clazz + "...");
             }
-            entityliving = (EntityLiving) clazz.getConstructor(new Class[] {World.class}).newInstance(new Object[] {DimensionManager.getWorld(0)});
+            entityliving = (EntityLiving) clazz.getConstructor(new Class[]{World.class}).newInstance(new Object[]{DimensionManager.getWorld(0)});
         } catch (Throwable throwable) {
             if (this.debug) {
                 this.envLog.logger.info(clazz + " is not a valid Entity for registration, Skipping...");
@@ -248,7 +236,7 @@ public class EnvironmentSettings {
         }
         if (entityName.contains(".")) {
             if ((entityName.indexOf(".") + 1) < entityName.length()) {
-                entityName = entityName.substring(entityName.indexOf(".") + 1, entityName.length());
+                entityName = entityName.substring(entityName.indexOf(".") + 1);
             }
         }
         entityName = entityName.replaceAll("[^A-Za-z0-9]", ""); // remove all non-digits/alphanumeric
@@ -314,7 +302,7 @@ public class EnvironmentSettings {
                 this.envLog.logger.info("Attempting to detect mod for Entity " + entityName + "...");
             }
 
-            if (entityClass.contains("net.minecraft.entity") || entityClass.toString().length() <= 3) // vanilla
+            if (entityClass.contains("net.minecraft.entity") || entityClass.length() <= 3) // vanilla
             {
                 EntityModData modData = this.entityModMap.get("vanilla");
                 if (this.debug) {
@@ -491,8 +479,8 @@ public class EnvironmentSettings {
                                 } else // blockID with meta
                                 {
                                     int blockID = Integer.parseInt(bannedBlock.substring(0, bannedBlock.indexOf("-")));
-                                    int blockMeta = Integer.parseInt(bannedBlock.substring(bannedBlock.indexOf("-"), bannedBlock.length()));
-                                    String block = Integer.toString(blockID) + "-" + Integer.toString(blockMeta);
+                                    int blockMeta = Integer.parseInt(bannedBlock.substring(bannedBlock.indexOf("-")));
+                                    String block = blockID + "-" + blockMeta;
                                     entityData.addSpawnBlockToBanlist(block);
                                     //System.out.println("Added spawnblock ID-Meta " + bannedBlock + " to blacklist.");
                                     if (this.debug) {
@@ -620,9 +608,7 @@ public class EnvironmentSettings {
             }
             CMSProperty prop = new CMSProperty(type.getName(), biomes, CMSProperty.Type.STRING);
             if (!biomes.isEmpty()) {
-                if (this.biomeGroupMap.containsKey(type.getName())) {
-                    this.biomeGroupMap.remove(type.getName());
-                }
+                this.biomeGroupMap.remove(type.getName());
                 this.biomeGroupMap.put(type.getName(), new BiomeGroupData(type.getName(), biomes));
                 Collections.sort(biomes); // sort biome groups for GUI
                 prop.valueList = biomes; // blood - make sure to link our newly generated list to the configuration list for direct modification later
@@ -797,6 +783,16 @@ public class EnvironmentSettings {
         }
     }
 
+
+    public void addDefaultCreaturesIfPresent(String modid, String name, String key, String tag, String filename) {
+        if (Loader.isModLoaded(modid)) {
+            if (this.debug) {
+                this.envLog.logger.info("Loaded default creatures "+CREATURES_FILE_PATH+""+filename);
+            }
+            this.defaultModMap.put(name, new EntityModData(key, tag, new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + filename))));
+        }
+    }
+
     public void genModConfiguration() {
         this.entityTypes.put("UNDEFINED", null);
         this.entityTypes.put("CREATURE", EnumCreatureType.CREATURE);
@@ -806,119 +802,48 @@ public class EnvironmentSettings {
         CMSConfigCategory modMapCat = this.CMSEnvironmentConfig.getCategory(CATEGORY_MOD_MAPPINGS);
 
         // setup defaults
-        this.defaultModMap.put("vanilla", new EntityModData("vanilla", "MC", new CMSConfiguration(new File(
-                this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "Vanilla.cfg"))));
-        this.defaultModMap.put("undefined",
-                new EntityModData("undefined", "U", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH
-                        + "Undefined.cfg"))));
-        if (Loader.isModLoaded("mocreatures")) {
-            this.defaultModMap.put("drzhark",
-                    new EntityModData("drzhark", "MOC", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH
-                            + "MoCreatures.cfg"))));
-        }
-        if (Loader.isModLoaded("biomesoplenty")) {
-            this.defaultModMap.put("biomesop",
-                    new EntityModData("biomesop", "BOP", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "BiomesOPlenty.cfg"))));
-        }
-        if (Loader.isModLoaded("bwg4")) {
-            this.defaultModMap.put("ted80",
-                    new EntityModData("ted80", "BWG", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH
-                            + "BWG.cfg"))));
-        }
-        if (Loader.isModLoaded("extrabiomesxl")) {
-            this.defaultModMap.put("extrabiomes",
-                    new EntityModData("extrabiomes", "XL", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "ExtraBiomesXL.cfg"))));
-        }
-        if (Loader.isModLoaded("twilightforest")) {
-            this.defaultModMap.put("twilightforest", new EntityModData("twilightforest", "TF", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "TwilightForest.cfg"))));
-        }
-        if (Loader.isModLoaded("grimoiregaia")) {
-            this.defaultModMap.put("gaia", new EntityModData("gaia", "GAIA", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "GrimoireOfGaia.cfg"))));
-        }
-        if (Loader.isModLoaded("infernalmobs")) {
-            this.defaultModMap.put("atomicstryker", new EntityModData("atomicstryker", "IM", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "InfernalMobs.cfg"))));
-        }
-        if (Loader.isModLoaded("arsmagica2")) {
-            this.defaultModMap.put("arsmagica",
-                    new EntityModData("arsmagica", "ARS", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "ArsMagica.cfg"))));
-        }
-        if (Loader.isModLoaded("projectzulu|core") || Loader.isModLoaded("ProjectZulu|Mob")) {
-            this.defaultModMap.put("projectzulu",
-                    new EntityModData("projectzulu", "PZ", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "ProjectZulu.cfg"))));
-        }
-        if (Loader.isModLoaded("thaumcraft")) {
-            this.defaultModMap.put("thaumcraft",
-                    new EntityModData("thaumcraft", "TC", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "Thaumcraft.cfg"))));
-        }
-        if (Loader.isModLoaded("Highlands")) {
-            this.defaultModMap.put("highlands",
-                    new EntityModData("highlands", "HL", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "Highlands.cfg"))));
-        }
-        if (Loader.isModLoaded("tconstruct")) {
-            this.defaultModMap.put("tinker",
-                    new EntityModData("tinker", "TC", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH
-                            + "TinkerConstruct.cfg"))));
-        }
-        if (Loader.isModLoaded("atum")) {
-            this.defaultModMap.put("atum", new EntityModData("atum", "ATUM", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "Atum.cfg"))));
-        }
-        if (Loader.isModLoaded("angrycreatures")) {
-            this.defaultModMap.put("advancedglowstone", new EntityModData("advancedglowstone", "AC", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "AngryCreatures.cfg"))));
-        }
-        if (Loader.isModLoaded("minefantasy")) {
-            this.defaultModMap.put("minefantasy",
-                    new EntityModData("minefantasy", "MF", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "MineFantasy.cfg"))));
-        }
-        if (Loader.isModLoaded("primitivemobs")) {
-            this.defaultModMap.put("primitivemobs", new EntityModData("primitivemobs", "PM", new CMSConfiguration(new File(
-                    this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "PrimitiveMobs.cfg"))));
-        }
-        if (Loader.isModLoaded("atmosmobs")) {
-            this.defaultModMap.put("atmosmobs",
-                    new EntityModData("atmosmobs", "ATMOS", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "AtmosMobs.cfg"))));
-        }
-        if (Loader.isModLoaded("farlanders")) {
-            this.defaultModMap.put("farlanders",
-                    new EntityModData("farlanders", "FL", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(),
-                            CREATURES_FILE_PATH + "Farlanders.cfg"))));
-        }
+        this.defaultModMap.put("vanilla", new EntityModData("vanilla", "MC", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "Vanilla.cfg"))));
+        this.defaultModMap.put("undefined", new EntityModData("undefined", "U", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + "Undefined.cfg"))));
+
+        addDefaultCreaturesIfPresent("mocreatures", "drzhark", "drzhark", "MOC", "MoCreatures.cfg");
+        addDefaultCreaturesIfPresent("biomesoplenty", "biomesop", "biomesop", "BOP", "BiomesOPlenty.cfg");
+        addDefaultCreaturesIfPresent("bwg4", "ted80", "ted80", "BWG", "BWG.cfg");
+        addDefaultCreaturesIfPresent("extrabiomesxl", "extrabiomes", "extrabiomes", "XL", "ExtraBiomesXL.cfg");
+        addDefaultCreaturesIfPresent("twilightforest", "twilightforest", "twilightforest", "TF", "TwilightForest.cfg");
+        addDefaultCreaturesIfPresent("grimoiregaia", "gaia", "gaia", "GAIA", "GrimoireOfGaia.cfg");
+        addDefaultCreaturesIfPresent("infernalmobs", "atomicstryker", "atomicstryker", "IM", "InfernalMobs.cfg");
+        addDefaultCreaturesIfPresent("arsmagica2", "arsmagica", "arsmagica", "ARS", "ArsMagica.cfg");
+        addDefaultCreaturesIfPresent("projectzulu|core", "projectzulu", "projectzulu", "PZ", "ProjectZulu.cfg");
+        addDefaultCreaturesIfPresent("projectzulu|Mob", "projectzulu", "projectzulu", "PZ", "ProjectZulu.cfg");
+        addDefaultCreaturesIfPresent("thaumcraft", "thaumcraft", "thaumcraft", "TC", "Thaumcraft.cfg");
+        addDefaultCreaturesIfPresent("Highlands", "highlands", "highlands", "HL", "Highlands.cfg");
+        addDefaultCreaturesIfPresent("tconstruct", "tinker", "tinker", "TC", "TinkerConstruct.cfg");
+        addDefaultCreaturesIfPresent("atum", "atum", "atum", "ATUM", "Atum.cfg");
+        addDefaultCreaturesIfPresent("angrycreatures", "advancedglowstone", "advancedglowstone", "AC", "AngryCreatures.cfg");
+        addDefaultCreaturesIfPresent("minefantasy", "minefantasy", "minefantasy", "MF", "MineFantasy.cfg");
+        addDefaultCreaturesIfPresent("primitivemobs", "primitivemobs", "primitivemobs", "PM", "PrimitiveMobs.cfg");
+        addDefaultCreaturesIfPresent("atmosmobs", "atmosmobs", "atmosmobs", "ATMOS", "AtmosMobs.cfg");
+        addDefaultCreaturesIfPresent("farlanders", "farlanders", "farlanders", "FL", "Farlanders.cfg");
+
+        addDefaultCreaturesIfPresent("pvj", "vibrantjourneys", "vibrantjourneys", "PVJ", "ProjectVibrantJourneys.cfg");
+        addDefaultCreaturesIfPresent("traverse", "traverse", "traverse", "TRAV", "Traverse.cfg");
+        addDefaultCreaturesIfPresent("dimdoors", "dimdoors", "dimdoors", "DD", "DimDoors.cfg");
+
         if (Loader.isModLoaded("terraincontrol")) {
-            this.biomeModMap.put("terraincontrol", new BiomeModData("terraincontrol", "TC", new CMSConfiguration(
-                            new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH
-                                    + ("terraincontrol.cfg")))));
+            this.biomeModMap.put("terraincontrol", new BiomeModData("terraincontrol", "TC", new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH + ("terraincontrol.cfg")))));
         }
 
         // generate default key mappings
         for (Map.Entry<String, EntityModData> modEntry : this.defaultModMap.entrySet()) {
-            List<String> values =
-                    new ArrayList<String>(Arrays.asList(modEntry.getValue().getModTag(), modEntry.getValue().getModConfig().getFileName() + ".cfg"));
+            List<String> values = new ArrayList<>(Arrays.asList(modEntry.getValue().getModTag(), modEntry.getValue().getModConfig().getFileName() + ".cfg"));
             modMapCat.put(modEntry.getKey(), new CMSProperty(modEntry.getKey(), values, CMSProperty.Type.STRING));
-            this.biomeModMap.put(modEntry.getKey(), new BiomeModData(modEntry.getKey(), modEntry.getValue().getModTag(), new CMSConfiguration(
-                    new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH
-                            + (modEntry.getValue().getModConfig().getFileName() + ".cfg")))));
-            this.entityModMap.put(modEntry.getKey(), new EntityModData(modEntry.getKey(), modEntry.getValue().getModTag(), new CMSConfiguration(
-                    new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH
-                            + (modEntry.getValue().getModConfig().getFileName() + ".cfg")))));
+            this.biomeModMap.put(modEntry.getKey(), new BiomeModData(modEntry.getKey(), modEntry.getValue().getModTag(), new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH + (modEntry.getValue().getModConfig().getFileName() + ".cfg")))));
+            this.entityModMap.put(modEntry.getKey(), new EntityModData(modEntry.getKey(), modEntry.getValue().getModTag(), new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + (modEntry.getValue().getModConfig().getFileName() + ".cfg")))));
             if (this.debug) {
-                this.envLog.logger.info("Added Mod Entity Mapping " + modEntry.getKey() + " to file "
-                        + (modEntry.getValue().getModConfig().getFileName() + ".cfg"));
+                this.envLog.logger.info("Added Mod Entity Mapping " + modEntry.getKey() + " to file " + (modEntry.getValue().getModConfig().getFileName() + ".cfg"));
             }
             if (this.debug) {
-                this.envLog.logger.info("Added Mod Biome Mapping " + modEntry.getKey() + " with tag " + modEntry.getValue().getModTag() + " to file "
-                        + (modEntry.getValue().getModConfig().getFileName() + ".cfg"));
+                this.envLog.logger.info("Added Mod Biome Mapping " + modEntry.getKey() + " with tag " + modEntry.getValue().getModTag() + " to file " + (modEntry.getValue().getModConfig().getFileName() + ".cfg"));
             }
         }
         // handle custom tag to config mappings
@@ -926,17 +851,13 @@ public class EnvironmentSettings {
             CMSProperty prop = propEntry.getValue();
             if (prop != null && !this.biomeModMap.containsKey(propEntry.getKey())) {
                 if (prop.valueList.size() == 2) {
-                    this.biomeModMap.put(propEntry.getKey(), new BiomeModData(propEntry.getKey(), prop.valueList.get(0), new CMSConfiguration(
-                            new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH + prop.valueList.get(1)))));
+                    this.biomeModMap.put(propEntry.getKey(), new BiomeModData(propEntry.getKey(), prop.valueList.get(0), new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), BIOMES_FILE_PATH + prop.valueList.get(1)))));
                     if (this.debug) {
-                        this.envLog.logger.info("Added Custom Mod Biome Mapping " + propEntry.getKey() + " with tag " + prop.valueList.get(0)
-                                + " to file " + prop.valueList.get(1));
+                        this.envLog.logger.info("Added Custom Mod Biome Mapping " + propEntry.getKey() + " with tag " + prop.valueList.get(0) + " to file " + prop.valueList.get(1));
                     }
-                    this.entityModMap.put(propEntry.getKey(), new EntityModData(propEntry.getKey(), prop.valueList.get(0), new CMSConfiguration(
-                            new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + prop.valueList.get(1)))));
+                    this.entityModMap.put(propEntry.getKey(), new EntityModData(propEntry.getKey(), prop.valueList.get(0), new CMSConfiguration(new File(this.CMSEnvironmentConfig.file.getParent(), CREATURES_FILE_PATH + prop.valueList.get(1)))));
                     if (this.debug) {
-                        this.envLog.logger.info("Added Custom Mod Entity Mapping " + propEntry.getKey() + " with tag " + prop.valueList.get(0)
-                                + " to file " + prop.valueList.get(1));
+                        this.envLog.logger.info("Added Custom Mod Entity Mapping " + propEntry.getKey() + " with tag " + prop.valueList.get(0) + " to file " + prop.valueList.get(1));
                     }
                 }
             }
