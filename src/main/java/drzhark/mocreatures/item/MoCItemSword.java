@@ -22,7 +22,7 @@ public class MoCItemSword extends ItemSword {
         super(material);
         this.setCreativeTab(MoCreatures.tabMoC);
         this.setRegistryName(MoCConstants.MOD_ID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
     }
 
     public MoCItemSword(String name, Item.ToolMaterial material, int damageType, boolean fragile) {

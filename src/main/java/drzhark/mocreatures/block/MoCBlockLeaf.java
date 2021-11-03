@@ -24,7 +24,7 @@ public class MoCBlockLeaf extends MoCBlock {
         super(name, Material.LEAVES);
         setTickRandomly(true);
         this.setCreativeTab(MoCreatures.tabMoC);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
         this.setSoundType(SoundType.PLANT);
     }
 

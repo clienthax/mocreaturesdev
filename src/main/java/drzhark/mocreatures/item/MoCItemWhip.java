@@ -72,7 +72,7 @@ public class MoCItemWhip extends MoCItem {
                     if (entitybigcat.getIsTamed()) {
                         entitybigcat.setSitting(!entitybigcat.getIsSitting());
                         i1++;
-                    } else if ((worldIn.getDifficulty().getDifficultyId() > 0) && entitybigcat.getIsAdult()) {
+                    } else if ((worldIn.getDifficulty().getId() > 0) && entitybigcat.getIsAdult()) {
                         entitybigcat.setAttackTarget(player);
                     }
                 }

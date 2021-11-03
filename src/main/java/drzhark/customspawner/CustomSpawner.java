@@ -406,7 +406,7 @@ public final class CustomSpawner {
             if (y >= 256) {
                 y = 255;
             }
-            blockLightLevel = CMSUtils.getLightFromNeighbors(world.getChunkFromChunkCoords(x >> 4, z >> 4), x & 15, y, z & 15);
+            blockLightLevel = CMSUtils.getLightFromNeighbors(world.getChunk(x >> 4, z >> 4), x & 15, y, z & 15);
         }
         if (blockLightLevel < minLightLevel && minLightLevel != -1) {
             if (debug) {
@@ -761,7 +761,7 @@ public final class CustomSpawner {
     public static Chunk getLoadedChunkWithoutMarkingActive(ChunkProviderServer chunkProviderServer, int x, int z)
     {
         long i = ChunkPos.asLong(x, z);
-        Chunk chunk = chunkProviderServer.id2ChunkMap.get(i);
+        Chunk chunk = chunkProviderServer.loadedChunks.get(i);
         return chunk;
     }
 

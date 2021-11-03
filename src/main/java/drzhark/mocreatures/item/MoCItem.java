@@ -16,6 +16,6 @@ public class MoCItem extends Item {
     public MoCItem(String name, int meta) {
         this.setCreativeTab(MoCreatures.tabMoC);
         this.setRegistryName(MoCConstants.MOD_ID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
     }
 }

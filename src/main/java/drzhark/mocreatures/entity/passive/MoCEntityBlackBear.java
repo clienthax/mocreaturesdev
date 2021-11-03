@@ -47,7 +47,7 @@ public class MoCEntityBlackBear extends MoCEntityBear {
     
     public double getAttackRange() {
         int factor = 1;
-        if (this.world.getDifficulty().getDifficultyId() > 1) {
+        if (this.world.getDifficulty().getId() > 1) {
             factor = 2;
         }
         return 6D * factor;
@@ -55,7 +55,7 @@ public class MoCEntityBlackBear extends MoCEntityBear {
 
     @Override
     public int getAttackStrength() {
-        int factor = (this.world.getDifficulty().getDifficultyId());
+        int factor = (this.world.getDifficulty().getId());
         return 2 * factor;
     }
     

@@ -10,7 +10,7 @@ public class MoCItemFood extends ItemFood {
         super(j, 0.6F, false);
         this.setCreativeTab(MoCreatures.tabMoC);
         this.setRegistryName(MoCConstants.MOD_ID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
         this.maxStackSize = 32;
     }
 
@@ -18,6 +18,6 @@ public class MoCItemFood extends ItemFood {
         super(j, f, flag);
         this.setCreativeTab(MoCreatures.tabMoC);
         this.setRegistryName(MoCConstants.MOD_ID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
     }
 }

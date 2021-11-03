@@ -79,7 +79,7 @@ public class MoCItemEgg extends MoCItem {
     }
 
     @Override
-    public String getUnlocalizedName(ItemStack itemstack) {
-        return (new StringBuilder()).append(getUnlocalizedName()).append(".").append(itemstack.getItemDamage()).toString();
+    public String getTranslationKey(ItemStack itemstack) {
+        return (new StringBuilder()).append(getTranslationKey()).append(".").append(itemstack.getItemDamage()).toString();
     }
 }

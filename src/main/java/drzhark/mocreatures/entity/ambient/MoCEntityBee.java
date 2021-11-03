@@ -69,7 +69,7 @@ public class MoCEntityBee extends MoCEntityInsect
             Entity entity = damagesource.getTrueSource();
             if (entity instanceof EntityLivingBase) {
                 EntityLivingBase entityliving = (EntityLivingBase) entity;
-                if ((entity != this) && (this.world.getDifficulty().getDifficultyId() > 0)) {
+                if ((entity != this) && (this.world.getDifficulty().getId() > 0)) {
                     setAttackTarget(entityliving);
                 }
                 return true;

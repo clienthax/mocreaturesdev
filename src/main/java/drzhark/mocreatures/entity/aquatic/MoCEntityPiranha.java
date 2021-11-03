@@ -60,7 +60,7 @@ public class MoCEntityPiranha extends MoCEntitySmallFish {
 
     @Override
     public boolean attackEntityFrom(DamageSource damagesource, float i) {
-        if (super.attackEntityFrom(damagesource, i) && (this.world.getDifficulty().getDifficultyId() > 0)) {
+        if (super.attackEntityFrom(damagesource, i) && (this.world.getDifficulty().getId() > 0)) {
             Entity entity = damagesource.getTrueSource();
             if (entity instanceof EntityLivingBase) {
                 if (this.isRidingOrBeingRiddenBy(entity)) {

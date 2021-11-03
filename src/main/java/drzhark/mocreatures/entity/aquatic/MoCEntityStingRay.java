@@ -43,7 +43,7 @@ public class MoCEntityStingRay extends MoCEntityRay {
     public void onLivingUpdate() {
         super.onLivingUpdate();
         if (!this.world.isRemote) {
-            if (!getIsTamed() && ++this.poisoncounter > 250 && (this.world.getDifficulty().getDifficultyId() > 0) && this.rand.nextInt(30) == 0) {
+            if (!getIsTamed() && ++this.poisoncounter > 250 && (this.world.getDifficulty().getId() > 0) && this.rand.nextInt(30) == 0) {
                 if (MoCTools.findNearPlayerAndPoison(this, true)) {
                     MoCMessageHandler.INSTANCE.sendToAllAround(new MoCMessageAnimation(this.getEntityId(), 1),
                             new TargetPoint(this.world.provider.getDimensionType().getId(), this.posX, this.posY, this.posZ, 64));
@@ -69,7 +69,7 @@ public class MoCEntityStingRay extends MoCEntityRay {
     @Override
     public boolean attackEntityFrom(DamageSource damagesource, float i) {
         if (super.attackEntityFrom(damagesource, i)) {
-            if ((this.world.getDifficulty().getDifficultyId() == 0)) {
+            if ((this.world.getDifficulty().getId() == 0)) {
                 return true;
             }
             Entity entity = damagesource.getTrueSource();
